@@ -1,0 +1,16 @@
+#! /bin/sh
+
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+
+#rm base
+. $basedir/rm_base
+
+#rm proxy
+service memcached stop
+rm -r -f /etc/memcached.conf
+apt-get remove --purge memcached -y --force-yes
+rm -r -f /etc/swift/
+rm -r -f /etc/rsyslog.d/10-swift.conf
+service rsyslog restart
+

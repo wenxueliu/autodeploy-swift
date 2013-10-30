@@ -1,0 +1,33 @@
+#!/bin/sh
+#AUTHOR  wenxueliu73@gmail.com
+#DATE    2013-10-12
+
+#each of them has a default value,  you can assign by you self if you want to
+#change it
+
+DEBUG=debug
+#----------------------------------------------------
+
+ARG1=$1
+ARG2=$2
+ARG3=$3
+
+PARTITIONS=${ARG1:-18} # recommand 18
+REPLICATIONS=${ARG2:-3} #recommand 3
+MOVE_RAITO=${ARG3:-1} # recommand 1
+
+
+if [ $DEBUG ]; then 
+   echo $PARTITIONS
+   echo $REPLICATIONS
+   echo $MOVE_RAITO
+
+else 
+#Create the account, container and object rings.
+	cd /etc/swift
+	rm -f *.builder *.ring.gz backups/*.builder  backups/*.ring.gz
+
+	swift-ring-builder account.builder create $PARTITIONS $REPLICATIONS $MOVE_RAITO
+	swift-ring-builder container.builder create $PARTITIONS $REPLICATIONS $MOVE_RAITO
+	swift-ring-builder object.builder create $PARTITIONS $REPLICATIONS $MOVE_RAITO
+fi

@@ -1,0 +1,166 @@
+#! /bin/sh
+
+#you must set the STORAGE_LOCAL_NET_IP as your local ip
+
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+
+if [ $SINGLE ]; then
+    export PATH=$PATH:$basedir/modules
+	SW_USER_NAME=${SW_USER_NAME:-swift}
+	SW_GROUP_NAME=${SW_GROUP_NAME:-swift}
+	LOCAL_ETH=${LOCAL_ETH:-eth0}
+	export STORAGE_LOCAL_NET_IP=`ifconfig $LOCAL_ETH | fgrep 'inet addr' | awk '{print $2}' | awk -F : '{ print $2 }'`
+	export LOOPBACK_CAP=10000000
+	export BLOCK_SIZE=1024
+	export NODE=sdb1
+	export MAX_CONNECTIONS=2
+	export ACCOUNT_PORT=${ACCOUNT_PORT:-6002}
+	export CONTAINER_PORT=${CONTAINER_PORT:-6001}
+	export OBJECT_PORT=${OBJECT_PORT:-5999}
+	export STORAGE_WORKERS=4
+else 
+	. $basedir/ENVIRONMENT
+fi
+
+. $basedir/base
+
+apt-get install xfsprogs -y --force-yes
+
+#Create directory /var/cache/swift and /srv/node. Change the ownership of the directory /var/cache/swift to the user and group which Swift account, container or object services will run under. 
+#These directories are needed only for storage node (account, container or object server). The ownership of /srv/node should be root:root, this is to ensure that when storage disks unmounted unexpectedly, the objects for swift will not be created in the directory /srv/node. 
+mkdir -p /var/cache/swift /srv/node/
+chown $SW_USER_NAME:$SW_GROUP_NAME /var/cache/swift
+chown root:root /srv/node
+
+#make space for swift
+mkdir -p /srv
+dd if=/dev/zero of=/srv/swift-disk bs=$BLOCK_SIZE count=0 seek=$LOOPBACK_CAP
+mkfs.xfs -f -i size=$BLOCK_SIZE /srv/swift-disk
+if ! $(grep '/srv/node' /etc/fstab); then
+	echo "/srv/swift-disk /srv/node/$NODE xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
+fi
+mkdir -p /srv/node/$NODE
+mount /srv/node/$NODE
+chown -R $SW_USER_NAME:$SW_GROUP_NAME /srv/node
+
+#Create and populate configuration directories:
+mkdir -p /etc/swift ; chown -R $SW_USER_NAME:$SW_GROUP_NAME /etc/swift/
+
+#Create /etc/rsyncd.conf:
+cat >/etc/rsyncd.conf <<EOF
+uid = $SW_USER_NAME
+gid = $SW_GROUP_NAME
+log file = /var/log/rsyncd.log
+pid file = /var/run/rsyncd.pid
+##what meaning
+address = $STORAGE_LOCAL_NET_IP 
+
+[account]
+max connections = $MAX_CONNECTIONS
+path = /srv/node/
+read only = false
+lock file = /var/lock/account.lock
+
+[container]
+max connections = $MAX_CONNECTIONS
+path = /srv/node/
+read only = false
+lock file = /var/lock/container.lock
+
+[object]
+max connections = $MAX_CONNECTIONS
+path = /srv/node/
+read only = false
+lock file = /var/lock/object.lock
+EOF
+
+#Edit the RSYNC_ENABLE= line in /etc/default/rsync:
+sed -i -e "s/RSYNC_ENABLE=false/RSYNC_ENABLE=true/" /etc/default/rsync
+service rsync restart
+
+
+cat > /etc/swift/account-server.conf <<EOF
+[DEFAULT]
+device = /srv/node
+mount_check = false
+bind_ip = $STORAGE_LOCAL_NET_IP
+bind_port = $ACCOUNT_PORT
+workers = $STORAGE_WORKERS
+user = $SW_USER_NAME
+log_facility = LOG_LOCAL4
+
+[pipeline:main]
+pipeline = account-server
+
+[app:account-server]
+use = egg:swift#account
+
+[account-replicator]
+
+[account-auditor]
+
+[account-reaper]
+EOF
+
+cat >/etc/swift/container-server.conf <<EOF
+[DEFAULT]
+swift_dir = /etc/swift
+device = /srv/node
+mount_check = false
+bind_ip = $STORAGE_LOCAL_NET_IP
+bind_port = $CONTAINER_PORT
+workers = $STORAGE_WORKERS
+user = $SW_USER_NAME
+log_facility = LOG_LOCAL3
+
+[pipeline:main]
+pipeline = container-server
+
+[app:container-server]
+use = egg:swift#container
+
+[container-replicator]
+
+[container-updater]
+
+[container-auditor]
+
+[container-sync]
+EOF
+
+cat >/etc/swift/object-server.conf <<EOF
+[DEFAULT]
+device = /srv/node
+mount_check = false
+bind_ip = $STORAGE_LOCAL_NET_IP
+bind_port = $OBJECT_PORT
+workers = $STORAGE_WORKERS
+user = $SW_USER_NAME 
+log_facility = LOG_LOCAL2
+
+[pipeline:main]
+pipeline = object-server
+
+[app:object-server]
+use = egg:swift#object
+user = swift
+
+[object-replicator]
+
+[object-updater]
+
+[object-auditor]
+EOF
+
+cat > /etc/rsyslog.d/10-swift.conf < $basedir/modules/storage_log.conf
+
+sed -i -e  's/PrivDropToGroup.*syslog/PrivDropToGroup adm/' /etc/rsyslog.conf
+mkdir -p /var/log/swift/hourly
+
+chown -R syslog.adm /var/log/swift
+chmod -R g+w /var/log/swift
+
+service rsyslog restart
+
+

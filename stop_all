@@ -1,0 +1,16 @@
+#! /bin/sh
+swift-init proxy stop
+
+swift-init account-server stop
+swift-init account-replicator stop
+swift-init account-auditor stop
+
+swift-init container-server stop
+swift-init container-replicator stop
+swift-init container-updater stop
+swift-init container-auditor stop
+
+swift-init object-server stop
+swift-init object-replicator stop
+swift-init object-updater stop
+swift-init object-auditor stop

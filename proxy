@@ -1,0 +1,95 @@
+#! /bin/sh 
+
+#follow thress sentences, you can execute the script in dir modules
+#directly. such . creat_ring.sh which in dir modules
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+
+if [ $SINGLE ]; then
+    export PATH=$PATH:$basedir/modules
+	export PROXY_ETH=eth1
+	echo $PROXY_ETH
+	export PROXY_LOCAL_NET_IP=`ifconfig $PROXY_ETH | grep 'inet addr' | awk '{print $2}' | awk -F : '{print $2}'`
+
+	export WORKERS=4
+	export BIND_PORT=8080
+
+	export USER_ADMIN=${USER_ADMIN:-user_admin_admin}
+	export USER_ADMIN_PASSWD=${USER_ADMIN_PASSWD:-admin}
+	export USER_TEST=${USER_TEST:-user_test_test}
+	export USER_TEST_PASSWD=${USER_TEST_PASSWD:-tset}
+	export USER_TEST1=${USER_TEST1:-user_test1_test1}
+	export USER_TEST1_PASSWD=${USER_TEST1_PASSWD:-test1}
+	export USER_TEST2=${USER_TEST2:-user_test2_test2}
+	export USER_TEST2_PASSWD=${USER_TEST2_PASSWD:-test2}
+else
+	. $basedir/ENVIRONMENT
+fi
+
+. $basedir/base
+
+#-----------------------------------------------------------------
+#the proxy node deploy as follow
+apt-get  install memcached -y --force-yes
+
+#Modify memcached to listen on the default interfaces. Preferably this should be on a local, non-public network. Edit the IP address in /etc/memcached.conf, for example:
+sed -i "s/-l 127.0.0.1/-l $PROXY_LOCAL_NET_IP/g" /etc/memcached.conf
+
+#Restart the memcached server:
+service memcached restart
+
+#Create /etc/swift/proxy-server.conf:
+cat >/etc/swift/proxy-server.conf << EOF
+[DEFAULT]
+#cert_file = /etc/swift/cert.crt
+#key_file = /etc/swift/cert.key
+bind_port = $BIND_PORT
+bind_ip = $PROXY_LOCAL_NET_IP
+workers = $WORKERS
+user = $SW_USER_NAME
+log_facility = LOG_LOCAL1
+
+[pipeline:main]
+pipeline = healthcheck cache tempauth proxy-logging proxy-server 
+
+[app:proxy-server]
+use = egg:swift#proxy
+allow_account_management = true
+account_autocreate = true
+
+[filter:proxy-logging]
+use = egg:swift#proxy_logging
+
+[filter:tempauth]
+use = egg:swift#tempauth
+$USER_ADMIN = $USER_ADMIN_PASSWD .admin .resller_admin
+$USER_TEST = $USER_TEST_PASSWD .admin
+$USER_TEST1 = $USER_TEST1_PASSWD 
+$USER_TEST2 = $USER_TEST2_PASSWD 
+reseller_prefix = AUTH
+
+#https://$PROXY_LOCAL_NET_IP:8080/v1/AUTH_system
+
+[filter:healthcheck]
+use = egg:swift#healthcheck
+
+[filter:cache]
+use = egg:swift#memcache
+memcache_servers = $PROXY_LOCAL_NET_IP:11211
+EOF
+
+
+cat > /etc/rsyslog.d/10-swift.conf < $basedir/modules/proxy_log.conf
+service rsyslog restart
+
+#Create the account, container and object rings. 
+#create_ring z1 10.1.2.4 sdb1
+#create_ring.sh z2 10.1.2.5 sdb1 110
+
+################################################
+#copy the account.ring.gz, container.ring.gz, and object.ring.gz files to
+#each of the Proxy and Storage nodes in /etc/swift.
+###############################################
+
+mkdir -p /etc/swift
+chown $SW_USER_NAME:$SW_GROUP_NAME /etc/swift

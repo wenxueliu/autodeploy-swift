@@ -1,0 +1,7 @@
+#! /bin/sh
+
+#Verify the ring contents for each ring:
+cd /etc/swift
+swift-ring-builder account.builder
+swift-ring-builder container.builder
+swift-ring-builder object.builder

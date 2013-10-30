@@ -1,0 +1,25 @@
+#! /bin/sh
+
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+
+
+. $basedir/rm_base
+##rm storage
+apt-get remove --purge xfsprogs -y --force-yes
+rm -r -f /var/cache/swift
+
+umount /srv/node/*
+sed -i "/xfs/d" /etc/fstab
+rm -rf /srv
+
+rm -r /etc/rsyncd.conf
+sed -i -e "s/RSYNC_ENABLE=true/RSYNC_ENABLE=false/" /etc/default/rsync
+service rsync restart 
+
+rm -r -f /etc/swift/
+
+rm -f /etc/rsyslog.d/10-swift.conf
+
+rm -r -f /var/log/swift
+service rsyslog restart

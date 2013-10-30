@@ -1,0 +1,45 @@
+#! /bin/sh 
+#version :python-swiftclient-1.6.0
+
+
+#follow thress sentences, you can execute the script in dir modules
+#directly. such . creat_ring.sh which in dir modules
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+#echo "export PATH=$PATH:$basedir" >> ~/.bashrc
+#. ~/.bashrc
+
+. $basedir/ENVIRONMENT
+
+#Install common Swift software prereqs:
+apt-get  install python-software-properties -y --force-yes
+apt-get openssh-server
+apt-get install python-pip -y --force-yes
+
+cd $basedir/software/python-swiftclient-1.2.0
+python setup.py install --record uninstall
+cd -
+
+cd $basedir/software/swift-1.7.6
+python setup.py install --record uninstall
+cd -
+
+
+mkdir -p /etc/swift; chown -R $SW_USER_NAME:$SW_GROUP_NAME /etc/swift
+
+cat >/etc/swift/swift.conf <<EOF
+[swift-hash]
+#random unique strings that can never change(DO NOT LOSE)
+swift_hash_path_prefix = $HASH_PREFIX
+swift_hash_path_suffix = $HASH_SUFFIX
+EOF
+
+#Create directory /var/run/swift and change the ownership to the user and group which Swift services will run under. Since the directory is only needed for runtime, when system shuts down, the directory will be gone. It is necessary to have the directory recreated when system is restarted. To do that, also add the following lines into /etc/rc.local before line “exit 0”.:
+mkdir -p /var/run/swift
+chown $SW_USER_NAME:$SW_GROUP_NAME /var/run/swift
+if ! $(grep  "/var/run/swift" /etc/rc.local) ; then
+   sudo sed -i "/^exit 0/ i\mkdir -p /var/run/swift" /etc/rc.local
+   sudo sed -i "/^exit 0/ i\chown $SW_USER_NAME:$SW_GROUP_NAME /var/run/swift" /etc/rc.local
+fi
+
+

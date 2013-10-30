@@ -1,0 +1,60 @@
+
+Note:exec as root
+
+   sudo ./ring 
+
+1. if you want a node run storage only 
+   Start:
+   sudo ./proxy
+   #username and ip is the every node in the cluster
+   scp  account.ring.gz container.ring.gz object.ring.gz  <username>@<IP>:/etc/swift
+   
+   sudo ./start_storage
+
+   Stop:
+   sudo ./stop_storage
+
+   Remove:
+   sudo ./rm_storage
+
+2. if you want a node run only proxy
+   Start:
+   sudo ./proxy
+   #username and ip is the every node in the cluster
+   scp  account.ring.gz container.ring.gz object.ring.gz <username>@<IP>:/etc/swift, 
+   ./start_proxy
+
+   Stop:
+   ./stop_proxy
+
+   Remove:
+   ./rm_proxy
+
+3. if you want a node run both proxy and storage service
+   Start:
+   sudo ./proxy
+   sudo ./storage
+   #username and ip is the every node in the cluster
+   scp  account.ring.gz container.ring.gz object.ring.gz  <username>@<IP>:/etc/swift
+   sudo ./start_proxy
+   sudo ./start_storage
+
+   Stop:
+   sudo ./stop_all
+
+   Remove:
+   sudo ./rm_all
+
+
+super admin: admin admin admin
+admin : test test tset
+user1 : test1 test1 test1
+user2 : test2 test2 test2
+
+network : you must set first
+eth0  external network
+eth1  internal network
+
+if you reboot:
+    proxy node: sevice memcached start  sudo ./start_proxy
+	storage node: sudo ./start_storage

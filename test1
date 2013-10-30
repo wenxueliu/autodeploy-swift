@@ -1,0 +1,37 @@
+#! /bin/sh
+
+#export ZONE=z1
+#export STORAGE_LOCAL_NET_IP=10.1.2.4
+#export DEVICE=sda1
+
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+echo $realpath
+echo $basedir
+#export PATH=$PATH:$basedir/modules
+#echo $PATH
+
+#. $basedir/swiftINSTALL/ENVIRONMENT
+$basedir/swiftINSTALL/ENVIRONMENT
+
+echo $realpath
+echo $basedir
+
+echo $SW_USER_NAME
+echo $SW_GROUP_NAME
+echo $PROXY_ETH
+
+exit 0
+
+create_ring.sh z2 123 asg 
+
+ZONE=z2
+STORAGE_LOCAL_NET_IP=10.1.2.5
+DEVICE=sda
+
+. create_ring.sh $ZONE $STORAGE_LOCAL_NET_IP $DEVICE
+
+
+echo $DEVICE
+echo $WEIGHT
+

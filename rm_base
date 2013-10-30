@@ -1,0 +1,11 @@
+#! /bin/sh
+
+##rm base
+rm -r -f /var/run/swift/
+
+sed -i "s/mkdir -p.*//" /etc/rc.local
+sed -i "s/chown.*//" /etc/rc.local
+
+apt-get remove --purge python-software-properties -y --force-yes
+cat $basedir/software/python-swiftclient-1.2.0/uninstall | xargs rm -rf
+cat $basedir/software/swift-1.7.6/uninstall | xargs rm -rf

@@ -1,0 +1,59 @@
+#! /bin/sh
+
+
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+export PATH=$PATH:$basedir/modules
+export SW_USER_NAME=${SW_USER_NAME:-swift}
+export SW_GROUP_NAME=${SW_GROUP_NAME:-swift}
+
+echo $realpath
+echo $basedir
+
+#file base
+HASH_PREFIX=jtangfs
+HASH_SUFFIX=jtangfs
+
+# file storage
+export LOCAL_ETH=${LOCAL_ETH:-eth1}
+export STORAGE_LOCAL_NET_IP=`ifconfig $LOCAL_ETH | fgrep 'inet addr' | awk '{print $2}' | awk -F : '{ print $2 }'`
+export LOOPBACK_CAP=10000000
+export BLOCK_SIZE=1024
+export NODE=sdb1
+export MAX_CONNECTIONS=2
+#change these ports isn't recommended, you have to change the module/add_ring if you want to do.
+export ACCOUNT_PORT=${ACCOUNT_PORT:-6002}
+export CONTAINER_PORT=${CONTAINER_PORT:-6001}
+export OBJECT_PORT=${OBJECT_PORT:-6000}
+export STORAGE_WORKERS=4
+
+# file proxy
+export PROXY_ETH=eth1
+export PROXY_LOCAL_NET_IP=`ifconfig $PROXY_ETH | grep 'inet addr' | awk '{print $2}' | awk -F : '{print $2}'`
+
+export WORKERS=4
+export BIND_PORT=8000
+
+export TOKEN_OPTION=tempauth #tempauth or keystone
+if [ "$TOKEN_OPTION"x = "tempauth"x ]; then
+    export TOKEN_METHOD="tempauth proxy-logging"
+elif [ "$TOKEN_METHOD"x = "keystone"x ]; then 
+    export TOKEN_METHOD="authtoken keystone"
+else
+    echo "you choose a not support authtoken method"
+	sleep 1
+	exit 0
+fi
+
+    
+
+export USER_ADMIN=${USER_ADMIN:-user_admin_admin}
+export USER_ADMIN_PASSWD=${USER_ADMIN_PASSWD:-admin}
+export USER_TEST=${USER_TEST:-user_test_test}
+export USER_TEST_PASSWD=${USER_TEST_PASSWD:-tset}
+export USER_TEST1=${USER_TEST1:-user_test1_test1}
+export USER_TEST1_PASSWD=${USER_TEST1_PASSWD:-test1}
+export USER_TEST2=${USER_TEST2:-user_test2_test2}
+export USER_TEST2_PASSWD=${USER_TEST2_PASSWD:-test2}
+
+

@@ -1,0 +1,61 @@
+#! /bin/sh
+#AUTHOR  wenxueliu73@gmail.com
+#DATE    2013-10-12
+
+#you must assign the ZONE and STORAGE_LOCAL_INET_IP, the DEVICE and WEIGHT have
+#a default value if you don't assign them
+
+#DEBUG=debug is default will show the ARGS you give it. DEBUG= if you want exec it
+#exactly 
+
+DEBUG=debug
+
+#----------------------------------
+
+ARG1=$1
+ARG2=$2
+ARG3=$3
+ARG4=$4
+
+ZONE=$1
+STORAGE_LOCAL_NET_IP=$2
+DEVICE=${ARG3:-sdb1}
+WEIGHT=${ARG4:-100}
+
+ACCOUNT_PORT=6002
+CONTAINER_PORT=6001
+OBJECT_PORT=6000
+
+if [ -z $ZONE ]
+then
+   echo "your ZONE doesn't set"
+   sleep 1
+   exit 1
+elif [ -z $STORAGE_LOCAL_NET_IP ]
+then
+   echo "your STORAGE_LOCAL_NET_IP doesn't set"
+   sleep 1
+   exit 1
+   exit 1
+elif [ -z $DEVICE ]
+then
+   echo "your DEVICE doesn't set"
+   sleep 1
+   exit 1
+fi
+
+
+if [ $DEBUG ]
+then
+	echo $ZONE
+	echo $STORAGE_LOCAL_NET_IP
+	echo $DEVICE
+	echo $WEIGHT
+else 
+#For every storage device in /srv/node on each node add entries to each ring:
+    cd /etc/swift
+	swift-ring-builder account.builder add $ZONE-$STORAGE_LOCAL_NET_IP:$ACCOUNT_PORT/$DEVICE $WEIGHT
+	swift-ring-builder container.builder add $ZONE-$STORAGE_LOCAL_NET_IP:$CONTAINER_PORT/$DEVICE $WEIGHT
+	swift-ring-builder object.builder add $ZONE-$STORAGE_LOCAL_NET_IP:$OBJECT_PORT/$DEVICE $WEIGHT
+
+fi

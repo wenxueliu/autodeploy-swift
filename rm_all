@@ -1,0 +1,10 @@
+#! /bin/sh
+
+#follow thress sentences, you can execute the script in dir modules
+#directly. such . creat_ring.sh which in dir modules
+realpath=$(readlink -f "$0")
+basedir=$(dirname "$realpath")
+
+. $basedir/rm_base
+. $basedir/rm_proxy
+. $basedir/rm_storage

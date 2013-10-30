@@ -1,0 +1,62 @@
+
+[DEFAULT]
+#cert_file = /etc/swift/cert.crt
+#key_file = /etc/swift/cert.key
+bind_port = $BIND_PORT
+bind_ip = $PROXY_LOCAL_NET_IP
+workers = $WORKERS
+user = $SW_USER_NAME
+log_facility = LOG_LOCAL1
+
+[pipeline:main]
+pipeline = healthcheck cache authtoken keystone proxy-server
+
+[app:proxy-server]
+use = egg:swift#proxy
+allow_account_management = true
+account_autocreate = true
+
+[filter:proxy-logging]
+use = egg:swift#proxy_logging
+
+#[filter:tempauth]
+#use = egg:swift#tempauth
+#$USER_ADMIN = $USER_ADMIN_PASSWD .admin .resller_admin
+#$USER_TEST = $USER_TEST_PASSWD .admin
+#$USER_TEST1 = $USER_TEST1_PASSWD 
+#$USER_TEST2 = $USER_TEST2_PASSWD 
+#reseller_prefix = AUTH
+
+#https://$PROXY_LOCAL_NET_IP:8080/v1/AUTH_system
+
+[filter:keystone]
+paset.filter_factory = keystone.middleware.swift_auth:filter_factory
+operator_roles = Member,admin, swiftoperator
+
+[filter:authtoken]
+paste.filter_factory = keystone.middleware.auth_token:filter_factory
+# Delaying the auth decision is required to support token-less
+# usage for anonymous referrers ('.r:*').
+delay_auth_decision = 10
+service_port = 5000
+service_host = $PROXY_LOCAL_NET_IP
+auth_port = 35357
+auth_host = $PROXY_LOCAL_NET_IP 
+auth_protocol = http
+auth_uri = http://$PROXY_LOCAL_NET_IP:5000/
+auth_token =  0123456789TOKEN987654231
+admin_token = 0123456789TOKEN987654231
+admin_tenant_name = service
+admin_user = swift
+admin_password = swiftpass
+
+[filter:healthcheck]
+use = egg:swift#healthcheck
+
+[filter:cache]
+use = egg:swift#memcache
+
+[filter:proxy-logging]
+use = egg:swift#proxy_logging
+
+#memcache_servers = $PROXY_LOCAL_NET_IP:11211
