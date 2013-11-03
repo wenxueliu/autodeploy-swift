@@ -1,13 +1,15 @@
 
 Note:exec as root
 
+1)you create ring, the ip is only storage ip.
    sudo ./ring 
+2)you should scp the ring files to all node under /etc/swift directory. wether storage node or proxy node.
+   scp  account.ring.gz container.ring.gz object.ring.gz  <username>@<IP>:/etc/swift
 
 1. if you want a node run storage only 
    Start:
    sudo ./proxy
    #username and ip is the every node in the cluster
-   scp  account.ring.gz container.ring.gz object.ring.gz  <username>@<IP>:/etc/swift
    
    sudo ./start_storage
 
@@ -21,7 +23,6 @@ Note:exec as root
    Start:
    sudo ./proxy
    #username and ip is the every node in the cluster
-   scp  account.ring.gz container.ring.gz object.ring.gz <username>@<IP>:/etc/swift, 
    ./start_proxy
 
    Stop:
@@ -35,7 +36,7 @@ Note:exec as root
    sudo ./proxy
    sudo ./storage
    #username and ip is the every node in the cluster
-   scp  account.ring.gz container.ring.gz object.ring.gz  <username>@<IP>:/etc/swift
+
    sudo ./start_proxy
    sudo ./start_storage
 
@@ -58,3 +59,5 @@ eth1  internal network
 if you reboot:
     proxy node: sevice memcached start  sudo ./start_proxy
 	storage node: sudo ./start_storage
+
+after install is ok. refer to http://www.cnblogs.com/fczjuever/p/3224022.html 
