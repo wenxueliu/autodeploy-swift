@@ -7,17 +7,17 @@ basedir=$(dirname "$realpath")
 
 if [ $SINGLE ]; then
     export PATH=$PATH:$basedir/modules
-	SW_USER_NAME=${SW_USER_NAME:-swift}
-	SW_GROUP_NAME=${SW_GROUP_NAME:-swift}
-	LOCAL_ETH=${LOCAL_ETH:-eth0}
-	export STORAGE_LOCAL_NET_IP=`ifconfig $LOCAL_ETH | fgrep 'inet addr' | awk '{print $2}' | awk -F : '{ print $2 }'`
+	SW_USER_NAME=${SW_USER_NAME:-root}
+	SW_GROUP_NAME=${SW_GROUP_NAME:-root}
+	LOCAL_ETH=${LOCAL_ETH:-eth1}
+	export STORAGE_LOCAL_NET_IP=`ifconfig $LOCAL_ETH | fgrep 'inet addr' | awk '{ print $2 }' | awk -F : '{ print $2 }'`
 	export LOOPBACK_CAP=10000000
 	export BLOCK_SIZE=1024
 	export NODE=sdb1
 	export MAX_CONNECTIONS=2
 	export ACCOUNT_PORT=${ACCOUNT_PORT:-6002}
 	export CONTAINER_PORT=${CONTAINER_PORT:-6001}
-	export OBJECT_PORT=${OBJECT_PORT:-5999}
+	export OBJECT_PORT=${OBJECT_PORT:-6000}
 	export STORAGE_WORKERS=4
 else 
 	. $basedir/ENVIRONMENT
@@ -40,6 +40,7 @@ mkfs.xfs -f -i size=$BLOCK_SIZE /srv/swift-disk
 if ! $(grep '/srv/node' /etc/fstab); then
 	echo "/srv/swift-disk /srv/node/$NODE xfs loop,noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
 fi
+
 mkdir -p /srv/node/$NODE
 mount /srv/node/$NODE
 chown -R $SW_USER_NAME:$SW_GROUP_NAME /srv/node

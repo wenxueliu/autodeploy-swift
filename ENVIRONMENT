@@ -4,8 +4,8 @@
 realpath=$(readlink -f "$0")
 basedir=$(dirname "$realpath")
 export PATH=$PATH:$basedir/modules
-export SW_USER_NAME=${SW_USER_NAME:-swift}
-export SW_GROUP_NAME=${SW_GROUP_NAME:-swift}
+export SW_USER_NAME=${SW_USER_NAME:-root}
+export SW_GROUP_NAME=${SW_GROUP_NAME:-root}
 
 echo $realpath
 echo $basedir
@@ -34,11 +34,13 @@ export PROXY_LOCAL_NET_IP=`ifconfig $PROXY_ETH | grep 'inet addr' | awk '{print 
 export WORKERS=4
 export BIND_PORT=8000
 
+export MEMCACHE_SERVERS="$PROXY_LOCAL_NET_IP:11211"
+
 export TOKEN_OPTION=tempauth #tempauth or keystone
 if [ "$TOKEN_OPTION"x = "tempauth"x ]; then
-    export TOKEN_METHOD="tempauth proxy-logging"
+    export TOKEN_METHOD="tempauth"
 elif [ "$TOKEN_METHOD"x = "keystone"x ]; then 
-    export TOKEN_METHOD="authtoken keystone"
+    export TOKEN_METHOD="authtoken keystoneauth"
 else
     echo "you choose a not support authtoken method"
 	sleep 1
@@ -56,4 +58,11 @@ export USER_TEST1_PASSWD=${USER_TEST1_PASSWD:-test1}
 export USER_TEST2=${USER_TEST2:-user_test2_test2}
 export USER_TEST2_PASSWD=${USER_TEST2_PASSWD:-test2}
 
-
+#keystone
+export KEYSTONE_AUTH_HOST="10.1.2.112"
+export KEYSTONE_AUTH_PORT=35356
+export KEYSTONE_AUTH_PROTOCOL="http"
+export KEYSTONE_SERVICE_HOST="10.1.2.112"
+export KEYSTONE_SERVICE_PORT=5000
+export KEYSTONE_ADMIN_TOKEN="admin"
+export KEYSTONE_OPERATOR_ROLE="adminRole, swiftoperator"

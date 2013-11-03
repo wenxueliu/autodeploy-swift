@@ -12,11 +12,12 @@ echo $basedir
 #echo $PATH
 
 #. $basedir/swiftINSTALL/ENVIRONMENT
-$basedir/swiftINSTALL/ENVIRONMENT
+#$basedir/ENVIRONMENT
 
 echo $realpath
 echo $basedir
 
+SW_USER_NAME="$basedir:111"
 echo $SW_USER_NAME
 echo $SW_GROUP_NAME
 echo $PROXY_ETH
