@@ -25,7 +25,8 @@ fi
 
 . $basedir/base
 
-apt-get install xfsprogs -y --force-yes
+sudo apt-get install xfsprogs -y --force-yes
+
 
 #Create directory /var/cache/swift and /srv/node. Change the ownership of the directory /var/cache/swift to the user and group which Swift account, container or object services will run under. 
 #These directories are needed only for storage node (account, container or object server). The ownership of /srv/node should be root:root, this is to ensure that when storage disks unmounted unexpectedly, the objects for swift will not be created in the directory /srv/node. 

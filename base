@@ -13,8 +13,12 @@ basedir=$(dirname "$realpath")
 
 #Install common Swift software prereqs:
 apt-get  install python-software-properties -y --force-yes
-apt-get openssh-server
+apt-get install openssh-server
 apt-get install python-pip -y --force-yes
+#follow three is needed if you run python script which depend on the c or cpp
+sudo apt-get install libffi-dev -y --force-yes
+sudo apt-get install gcc -y --force-yes
+sudo apt-get install python-dev -y --force-yes
 
 cd $basedir/software/python-swiftclient-1.2.0
 python setup.py install --record uninstall

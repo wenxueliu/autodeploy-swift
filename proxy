@@ -31,7 +31,6 @@ fi
 #-----------------------------------------------------------------
 #the proxy node deploy as follow
 sudo apt-get  install memcached -y --force-yes
-sudo apt-get  install libffi-dev -y --force-yes
 
 #Modify memcached to listen on the default interfaces. Preferably this should be on a local, non-public network. Edit the IP address in /etc/memcached.conf, for example:
 sed -i "s/-l 127.0.0.1/-l $PROXY_LOCAL_NET_IP/g" /etc/memcached.conf
