@@ -8,7 +8,7 @@ Note:exec as root
 
 1. if you want a node run storage only 
    Start:
-   sudo ./proxy
+   sudo ./storage
    #username and ip is the every node in the cluster
    
    sudo ./start_storage
@@ -21,18 +21,24 @@ Note:exec as root
 
 2. if you want a node run only proxy
    Start:
+   #as some bugs about cffi, you have to install proxy two times
    sudo ./proxy
+   sudo ./rm_proxy
+   sudo ./proxy
+   sudo ./rm_proxy
+   sudo ./start_proxy
    #username and ip is the every node in the cluster
-   ./start_proxy
 
    Stop:
-   ./stop_proxy
+   sudo ./stop_proxy
 
    Remove:
-   ./rm_proxy
+   sudo ./rm_proxy
 
-3. if you want a node run both proxy and storage service
+3. if you want a node run both proxy and storage service # haven't test
    Start:
+   sudo ./proxy
+   sudo ./rm_proxy
    sudo ./proxy
    sudo ./storage
    #username and ip is the every node in the cluster
