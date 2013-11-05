@@ -1,4 +1,7 @@
 
+TEST : Linux proxy1 3.2.0-23-generic #36-Ubuntu SMP Tue Apr 10 20:39:51 UTC
+2012 x86_64 x86_64 x86_64 GNU/Linux
+
 Note:exec as root
 
 1)you create ring, the ip is only storage ip.
